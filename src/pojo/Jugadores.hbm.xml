@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 10-may-2020 15:48:48 by Hibernate Tools 4.3.1 -->
+<hibernate-mapping>
+    <class name="pojo.Jugadores" table="jugadores" catalog="database_basket" optimistic-lock="version">
+        <id name="dni" type="int">
+            <column name="dni" />
+            <generator class="assigned" />
+        </id>
+        <many-to-one name="equipos" class="pojo.Equipos" fetch="select">
+            <column name="equipo_id" not-null="true" />
+        </many-to-one>
+        <property name="nombre" type="string">
+            <column name="nombre" length="25" not-null="true" />
+        </property>
+        <property name="apellido" type="string">
+            <column name="apellido" length="25" not-null="true" />
+        </property>
+        <property name="posicion" type="string">
+            <column name="posicion" length="20" not-null="true" />
+        </property>
+        <property name="edad" type="int">
+            <column name="edad" not-null="true" />
+        </property>
+        <property name="dorsal" type="int">
+            <column name="dorsal" not-null="true" />
+        </property>
+    </class>
+</hibernate-mapping>
