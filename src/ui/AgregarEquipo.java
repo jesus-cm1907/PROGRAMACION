@@ -5,6 +5,15 @@
  */
 package ui;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Base64;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -16,8 +25,7 @@ import pojo.Equipos;
  */
 public class AgregarEquipo extends javax.swing.JFrame {
 
-    
-
+    private String imagenBase64=null;
     /**
      * Creates new form AgregarEquipo
      */
@@ -68,9 +76,13 @@ public class AgregarEquipo extends javax.swing.JFrame {
         jLabel5.setText("Escudo:");
 
         btnExplotarArchivos.setText("Explorar Archivos");
+        btnExplotarArchivos.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExplotarArchivosActionPerformed(evt);
+            }
+        });
 
         outputResultadoPath.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        outputResultadoPath.setText("Resultado Path");
 
         btnGuardarEquipo.setText("Guardar equipo");
         btnGuardarEquipo.addActionListener(new java.awt.event.ActionListener() {
@@ -109,12 +121,13 @@ public class AgregarEquipo extends javax.swing.JFrame {
                                 .addComponent(btnExplotarArchivos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btnGuardarEquipo, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(outputResultadoPath, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(outputResultadoPath, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(btnGuardarEquipo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -138,11 +151,11 @@ public class AgregarEquipo extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
                     .addComponent(btnExplotarArchivos))
-                .addGap(27, 27, 27)
-                .addComponent(outputResultadoPath)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(outputResultadoPath, javax.swing.GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnGuardarEquipo)
-                .addContainerGap(28, Short.MAX_VALUE))
+                .addGap(21, 21, 21))
         );
 
         pack();
@@ -150,32 +163,33 @@ public class AgregarEquipo extends javax.swing.JFrame {
 
     private void btnGuardarEquipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarEquipoActionPerformed
 
-
         if (validateFields()) {
-            
+
             Session mSession = controlador.Controller.getSessionFactory().openSession();
             Transaction mTransaction = mSession.beginTransaction();
             String nombre = inputNombreEquipo.getText().toString().trim();
             int victorias = Integer.parseInt(inputVictoriasEquipo.getText().toString());
             int derrotas = Integer.parseInt(inputDerrotasEquipo.getText().toString());
-            String escudo = outputResultadoPath.getText().toString();
-            
+            String escudo = imagenBase64;
+
             Equipos nuevoEquipo = new Equipos();
             nuevoEquipo.setNombre(nombre);
             nuevoEquipo.setVictorias(victorias);
             nuevoEquipo.setDerrotas(derrotas);
             nuevoEquipo.setEscudo(escudo);
-            
+
             mSession.save(nuevoEquipo);
             mTransaction.commit();
-            
+
             mSession.close();
             mTransaction = null;
-            
-            JOptionPane.showMessageDialog(rootPane, "El equipo "+nuevoEquipo.getNombre()+" se agregó correctamente","Enhorabuena!",JOptionPane.INFORMATION_MESSAGE);
+
+            JOptionPane.showMessageDialog(rootPane, "El equipo " + nuevoEquipo.getNombre() + " se agregó correctamente", "Enhorabuena!", JOptionPane.INFORMATION_MESSAGE);
             inputNombreEquipo.setText("");
             inputDerrotasEquipo.setText("");
             inputVictoriasEquipo.setText("");
+            imagenBase64 = null;
+            outputResultadoPath.setIcon(null);
             inputNombreEquipo.requestFocus();
         }
 
@@ -184,6 +198,47 @@ public class AgregarEquipo extends javax.swing.JFrame {
     private void inputVictoriasEquipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_inputVictoriasEquipoActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_inputVictoriasEquipoActionPerformed
+
+    private void btnExplotarArchivosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExplotarArchivosActionPerformed
+        JFileChooser fileChooser = new JFileChooser();
+        int valorRespuesta = fileChooser.showOpenDialog(fileChooser);
+        String pathFile = null;
+        BufferedImage imagen = null;
+        imagenBase64 = null;
+        if (valorRespuesta == JFileChooser.APPROVE_OPTION) {
+
+            try {
+                /*  Obtener la imagen desde el path seleccionado 
+                Debemos realizarlo dentro de un try-catch para evitar problemas de lectura
+                 */
+                pathFile = fileChooser.getSelectedFile().getAbsolutePath();
+                imagen = ImageIO.read(new File(pathFile));
+                Image newImage = imagen.getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+                outputResultadoPath.setIcon(new ImageIcon(newImage));
+
+                codificarImagenaBase64(new File(pathFile));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("Ocurrio un error inesperado!");
+            }
+        } else {
+            System.out.println("No se selecciono una imagen");
+        }
+
+    }//GEN-LAST:event_btnExplotarArchivosActionPerformed
+
+    private void codificarImagenaBase64(File imageFile) {
+        try {
+            FileInputStream imageInFile = new FileInputStream(imageFile);
+            byte imageData[] = new byte[(int) imageFile.length()];
+            imageInFile.read(imageData);
+            imagenBase64 = Base64.getEncoder().encodeToString(imageData);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Ocurrio un error al codificar");
+        }
+    }
 
     @Override
     public void setDefaultCloseOperation(int operation) {
@@ -223,6 +278,13 @@ public class AgregarEquipo extends javax.swing.JFrame {
             inputDerrotasEquipo.requestFocus();
             return false;
         }
+        
+        if(imagenBase64 == null){
+            JOptionPane.showMessageDialog(rootPane, "Debe ingresar el escudo","Atención",JOptionPane.INFORMATION_MESSAGE);
+            return false;
+        }
+        
         return true;
     }
+
 }

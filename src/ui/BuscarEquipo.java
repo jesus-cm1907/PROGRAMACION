@@ -18,7 +18,6 @@ import org.hibernate.criterion.Projections;
 import java.util.*;
 import javafx.scene.effect.ImageInput;
 import javax.imageio.ImageIO;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.table.DefaultTableModel;
@@ -217,14 +216,14 @@ public class BuscarEquipo extends javax.swing.JFrame {
         JLabel label = new JLabel();
         for (int index = 0; index < listaEquipos.size(); index++) {
             escudo = obtenerImageIcondelEscudo(listaEquipos.get(index).getEscudo());
-            Icon icono = escudo;
+
             label.setIcon(escudo);
-            
+            tablaResultadoBusqueda.getColumn("Escudo").setCellRenderer(new LabelRender());
+
             Table2.addRow(new Object[]{
                 listaEquipos.get(index).getNombre(),
                 listaEquipos.get(index).getVictorias(),
                 listaEquipos.get(index).getDerrotas(),
-                icono});
             tablaResultadoBusqueda.setModel(Table2);
         }
 
@@ -285,3 +284,8 @@ public class BuscarEquipo extends javax.swing.JFrame {
     private javax.swing.JTable tablaResultadoBusqueda;
     // End of variables declaration//GEN-END:variables
 }
+<<<<<<< HEAD
+                icono});
+=======
+                label});
+>>>>>>> origin/master
