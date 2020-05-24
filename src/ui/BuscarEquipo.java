@@ -5,6 +5,9 @@
  */
 package ui;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import pojo.Equipos;
@@ -14,9 +17,14 @@ import org.hibernate.Transaction;
 import org.hibernate.criterion.Projections;
 import java.util.*;
 import javafx.scene.effect.ImageInput;
+import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import org.hibernate.criterion.Restrictions;
+import sun.misc.BASE64Decoder;
 
 /**
  *
@@ -182,17 +190,14 @@ public class BuscarEquipo extends javax.swing.JFrame {
         Session s = controlador.Controller.getSessionFactory().openSession();
         Criteria criteria = s.createCriteria(Equipos.class);
         String terminoBusqueda = inputSelecciona.getText().toString();
-        
+
         DefaultTableModel Table2 = new DefaultTableModel();
-        
+
         Table2.addColumn("Nombre");
         Table2.addColumn("Victorias");
         Table2.addColumn("Derrotas");
         Table2.addColumn("Escudo");
-        
-        
-        
-       
+
         if (rbNombre.isSelected()) {
             criteria.add(Restrictions.eq("nombre", terminoBusqueda));
         } else if (rbVictorias.isSelected()) {
@@ -202,36 +207,63 @@ public class BuscarEquipo extends javax.swing.JFrame {
         } else if (rbDerrotas.isSelected()) {
             int derrotas = Integer.parseInt(terminoBusqueda);
             criteria.add(Restrictions.eq("derrotas", derrotas));
-        }else if(rbTodos.isSelected()){
+        } else if (rbTodos.isSelected()) {
             inputSelecciona.setText("");
         }
 
         List<Equipos> listaEquipos = criteria.list();
-
+        ImageIcon escudo = null;
+        
+        JLabel label = new JLabel();
         for (int index = 0; index < listaEquipos.size(); index++) {
+            escudo = obtenerImageIcondelEscudo(listaEquipos.get(index).getEscudo());
+            Icon icono = escudo;
+            label.setIcon(escudo);
+            
             Table2.addRow(new Object[]{
-                 listaEquipos.get(index).getNombre(),
+                listaEquipos.get(index).getNombre(),
                 listaEquipos.get(index).getVictorias(),
                 listaEquipos.get(index).getDerrotas(),
-                listaEquipos.get(index).getEscudo(),
-              
-        
-        });
-             tablaResultadoBusqueda.setModel(Table2);
-            }
+                icono});
+            tablaResultadoBusqueda.setModel(Table2);
+        }
 
         s.close();
         criteria = null;
-
-
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private ImageIcon obtenerImageIcondelEscudo(String imagenBase64){
+        ImageIcon escudo = null;
+        
+        BufferedImage imagenDecodificada = decodeToImage(imagenBase64);
+        Image imagenRedimensionada = imagenDecodificada.getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+        escudo = new ImageIcon(imagenRedimensionada);        
+        
+        return escudo;
+    }
+    
+    private BufferedImage decodeToImage(String imageString) {
+ 
+        BufferedImage image = null;
+        byte[] imageByte;
+        try {
+            BASE64Decoder decoder = new BASE64Decoder();
+            imageByte = decoder.decodeBuffer(imageString);
+            ByteArrayInputStream bis = new ByteArrayInputStream(imageByte);
+            image = ImageIO.read(bis);
+            bis.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return image;
+    }
+    
     
     private void rbVictoriasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rbVictoriasActionPerformed
 
 
     }//GEN-LAST:event_rbVictoriasActionPerformed
-    
-    
+
     @Override
     public void setDefaultCloseOperation(int operation) {
         dispose();
